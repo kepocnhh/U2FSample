@@ -10,6 +10,8 @@ repositories {
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.compose") version "1.9.3"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.21"
 }
 
 android {
@@ -33,7 +35,10 @@ android {
         }
     }
 
-    buildFeatures.buildConfig = true
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 }
 
 androidComponents.onVariants { variant ->
@@ -56,5 +61,6 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
-    implementation("androidx.activity:activity:1.12.2")
+    implementation(compose.foundation)
+    implementation("androidx.activity:activity-compose:1.12.2")
 }
