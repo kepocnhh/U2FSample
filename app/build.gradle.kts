@@ -14,7 +14,7 @@ plugins {
 
 android {
     namespace = "test.android.u2f"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = namespace
@@ -56,5 +56,5 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
-    // todo
+    implementation("androidx.activity:activity:1.12.2")
 }

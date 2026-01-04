@@ -5,11 +5,11 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.8.2")
+        classpath("com.android.tools.build:gradle:8.13.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21")
     }
 }
 
-task<Delete>("clean") {
+tasks.register<Delete>("clean") {
     delete = setOf("build")
 }
