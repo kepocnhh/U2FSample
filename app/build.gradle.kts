@@ -5,6 +5,7 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://central.sonatype.com/repository/maven-snapshots")
 }
 
 plugins {
@@ -63,4 +64,6 @@ androidComponents.onVariants { variant ->
 dependencies {
     implementation(compose.foundation)
     implementation("androidx.activity:activity-compose:1.12.2")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.github.kepocnhh:Bytes:0.4.1-SNAPSHOT")
 }

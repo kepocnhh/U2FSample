@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import sp.kx.bytes.hex
 
 @Composable
 internal fun MainScreen() {
@@ -51,10 +52,11 @@ internal fun MainScreen() {
                             loading.value = true
                             withContext(Dispatchers.Default) {
                                 runCatching {
-                                    injection.u2FRemotes.startRegistration()
+                                    val response = injection.u2FRemotes.startRegistration()
+                                    logger.debug("challenge: ${response.challenge.hex()}")
                                 }.fold(
-                                    onSuccess = { response ->
-                                        TODO("start registration: $response")
+                                    onSuccess = {
+                                        TODO("registration...")
                                     },
                                     onFailure = { error ->
                                         logger.warning("start registration error: $error")
