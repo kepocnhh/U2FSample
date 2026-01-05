@@ -12,8 +12,8 @@ internal class AuthenticatorAttestationResponse(
     val clientDataJSON: ByteArray,
 
     // [fmt][attStmt][authData]
-    // [attStmt] = [alg][sig][x5c]
-    // [authData] = [rp id hash][flags][counter][attested cred data][extensions]
+    // [attStmt] = ?
+    // [authData] = [rp id hash][flags][counter] + [attested cred data]? + [extensions]?
     // [attested cred data] = [aaguid][l][credential id][credential public key]
 
     /**
