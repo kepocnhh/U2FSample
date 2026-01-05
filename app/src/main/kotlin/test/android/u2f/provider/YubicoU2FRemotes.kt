@@ -6,6 +6,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import test.android.u2f.entity.AttestationConveyancePreference
+import test.android.u2f.entity.PublicKeyCredential
 import test.android.u2f.entity.PublicKeyCredentialCreationOptions
 import test.android.u2f.entity.PublicKeyCredentialRpEntity
 import test.android.u2f.entity.PublicKeyCredentialUserEntity
@@ -58,5 +59,9 @@ internal class YubicoU2FRemotes : U2FRemotes {
                 else -> error("Unknown code: $code")
             }
         }
+    }
+
+    override fun finishRegistration(credential: PublicKeyCredential) {
+        TODO("YubicoU2FRemotes:finishRegistration")
     }
 }

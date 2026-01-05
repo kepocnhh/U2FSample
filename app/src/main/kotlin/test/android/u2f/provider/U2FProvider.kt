@@ -1,5 +1,8 @@
 package test.android.u2f.provider
 
+import test.android.u2f.entity.PublicKeyCredential
+import test.android.u2f.entity.PublicKeyCredentialCreationOptions
+
 internal interface U2FProvider {
-    fun process(challenge: ByteArray)
+    fun create(options: PublicKeyCredentialCreationOptions): PublicKeyCredential
 }

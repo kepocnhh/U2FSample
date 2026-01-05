@@ -52,8 +52,11 @@ internal fun MainScreen() {
                             loading.value = true
                             withContext(Dispatchers.Default) {
                                 runCatching {
-                                    val response = injection.u2FRemotes.startRegistration()
-                                    logger.debug("challenge: ${response.challenge.hex()}")
+                                    val options = injection.u2FRemotes.startRegistration()
+                                    logger.debug("options:challenge: ${options.challenge.hex()}")
+                                    val credential = injection.u2FProvider.create(options = options)
+                                    logger.debug("credential:id: ${credential.rawId.hex()}")
+                                    injection.u2FRemotes.finishRegistration(credential = credential)
                                 }.fold(
                                     onSuccess = {
                                         TODO("registration...")
