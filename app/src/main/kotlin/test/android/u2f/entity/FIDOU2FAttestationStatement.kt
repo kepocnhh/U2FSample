@@ -18,4 +18,6 @@ internal class FIDOU2FAttestationStatement(
      * A single element array containing the attestation certificate in X.509 format.
      */
     val x5c = arrayOf(attestnCert)
+
+    val alg = -7 // ES256
 }
