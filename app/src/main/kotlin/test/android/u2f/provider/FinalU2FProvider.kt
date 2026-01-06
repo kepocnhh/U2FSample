@@ -33,6 +33,8 @@ internal class FinalU2FProvider(
         val keyPair = secrets.newKeyPair(algorithm = "EC", keySize = 256)
         logger.debug("public:key: ${hashes.map("sha256", keyPair.public.encoded).hex()}")
         logger.debug("private:key: ${hashes.map("sha256", keyPair.private.encoded).hex()}")
+        val crt = secrets.newCertificate(publicKey = keyPair.public, privateKey = keyPair.private)
+        logger.debug("crt: ${hashes.map("sha256", crt.encoded).hex()}")
         val attestationStatement = PackedAttestationStatement(
             attestnCert = TODO("FinalU2FProvider:packed:attestnCert"),
             alg = -9, // ESP256

@@ -66,4 +66,5 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.12.2")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.github.kepocnhh:Bytes:0.4.1-SNAPSHOT")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
 }
