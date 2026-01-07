@@ -62,6 +62,24 @@ internal class YubicoU2FRemotes : U2FRemotes {
     }
 
     override fun finishRegistration(credential: PublicKeyCredential) {
-        TODO("YubicoU2FRemotes:finishRegistration")
+        val contentType = "application/json".toMediaType()
+        val request = Request.Builder()
+            .url("$uri/register-finish")
+            .post(
+                body = JSONObject()
+                    .toString()
+                    .toRequestBody(contentType = contentType),
+            )
+            .build()
+        return client.newCall(request).execute().use { response ->
+            when (val code = response.code) {
+                else -> {
+                    val body = runCatching {
+                        JSONObject(response.body!!.string()).toString(4)
+                    }.getOrNull()
+                    error(body ?: "code: $code")
+                }
+            }
+        }
     }
 }

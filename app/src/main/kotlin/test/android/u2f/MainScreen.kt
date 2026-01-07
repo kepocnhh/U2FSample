@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,11 +21,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.coroutineScope
+import co.nstant.`in`.cbor.CborDecoder
+import co.nstant.`in`.cbor.model.Map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import sp.kx.bytes.hex
+import kotlin.io.encoding.Base64
 
 @Composable
 internal fun MainScreen() {
@@ -53,16 +58,26 @@ internal fun MainScreen() {
                             withContext(Dispatchers.Default) {
                                 runCatching {
                                     val options = injection.u2FRemotes.startRegistration()
-                                    logger.debug("options:challenge: ${options.challenge.hex()}")
+                                    logger.debug("options:challenge: ${Base64.encode(options.challenge)}")
                                     val credential = injection.u2FProvider.create(options = options)
                                     logger.debug("credential:id: ${credential.rawId.hex()}")
+                                    logger.debug("credential:client: ${JSONObject(String(credential.response.clientDataJSON))}")
+                                    CborDecoder.decode(credential.response.attestationObject).single().let {
+                                        check(it is Map)
+                                        it.keys.map { key -> key to it.get(key) }
+                                    }.joinToString(separator = "\n") { (k, v) ->
+                                        "$k: $v"
+                                    }.also { message ->
+                                        logger.debug("credential:attestation: $message")
+                                    }
                                     injection.u2FRemotes.finishRegistration(credential = credential)
                                 }.fold(
                                     onSuccess = {
                                         TODO("registration...")
                                     },
                                     onFailure = { error ->
-                                        logger.warning("start registration error: $error")
+                                        logger.warning("start registration error:")
+                                        logger.info(error.message!!)
                                     }
                                 )
                             }

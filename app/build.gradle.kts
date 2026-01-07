@@ -67,4 +67,5 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.github.kepocnhh:Bytes:0.4.1-SNAPSHOT")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
+    implementation("co.nstant.in:cbor:0.9")
 }

@@ -18,4 +18,8 @@ private class FinalLogger(
     override fun warning(message: String) {
         Log.w(tag, message)
     }
+
+    override fun info(message: String) {
+        Log.i(tag, message)
+    }
 }

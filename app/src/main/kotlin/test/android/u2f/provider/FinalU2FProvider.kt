@@ -1,5 +1,9 @@
 package test.android.u2f.provider
 
+import co.nstant.`in`.cbor.CborBuilder
+import co.nstant.`in`.cbor.CborEncoder
+import co.nstant.`in`.cbor.builder.MapBuilder
+import co.nstant.`in`.cbor.model.UnicodeString
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
@@ -157,6 +161,17 @@ internal class FinalU2FProvider(loggers: Loggers) : U2FProvider {
         return sig.sign()
     }
 
+    private fun attestationObject(): ByteArray {
+        return ByteArrayOutputStream().use { stream ->
+            val builder = CborBuilder()
+                .addMap()
+                .put("fmt", "fido-u2f")
+                .end()
+            CborEncoder(stream).encode(builder.build())
+            stream.toByteArray()
+        }
+    }
+
     override fun create(options: PublicKeyCredentialCreationOptions): PublicKeyCredential {
         val rawId = sha256.digest(options.rp.id.toByteArray() + options.user.id) // todo
         val ccd = CollectedClientData(
@@ -228,9 +243,10 @@ internal class FinalU2FProvider(loggers: Loggers) : U2FProvider {
             attestnCert = attestationCrt.encoded,
             sig = signature,
         )
+        val attestationObject = attestationObject()
         val response = AuthenticatorAttestationResponse(
             clientDataJSON = clientDataJson,
-            attestationObject = TODO("FinalU2FProvider:response:attestationObject"),
+            attestationObject = attestationObject,
         )
         return PublicKeyCredential(
             rawId = rawId,
