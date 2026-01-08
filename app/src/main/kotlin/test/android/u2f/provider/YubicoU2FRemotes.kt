@@ -10,6 +10,7 @@ import test.android.u2f.entity.PublicKeyCredential
 import test.android.u2f.entity.PublicKeyCredentialCreationOptions
 import test.android.u2f.entity.PublicKeyCredentialRpEntity
 import test.android.u2f.entity.PublicKeyCredentialUserEntity
+import test.android.u2f.entity.StartRegistrationResponse
 import java.net.URI
 import java.util.UUID
 import kotlin.io.encoding.Base64
@@ -19,7 +20,7 @@ internal class YubicoU2FRemotes : U2FRemotes {
     private val client = OkHttpClient.Builder().build()
     private val uri = URI("https://demo.yubico.com/api/v1/simple/webauthn")
 
-    override fun startRegistration(): PublicKeyCredentialCreationOptions {
+    override fun startRegistration(): StartRegistrationResponse {
         val contentType = "application/json".toMediaType()
         val request = Request.Builder()
             .url("$uri/register-begin")
@@ -32,7 +33,7 @@ internal class YubicoU2FRemotes : U2FRemotes {
                     val pk = obj.getJSONObject("publicKey")
                     val rp = pk.getJSONObject("rp")
                     val user = pk.getJSONObject("user")
-                    PublicKeyCredentialCreationOptions(
+                    val options = PublicKeyCredentialCreationOptions(
                         rp = PublicKeyCredentialRpEntity(
                             id = rp.getString("id"),
                             name = rp.getString("name"),
@@ -55,18 +56,33 @@ internal class YubicoU2FRemotes : U2FRemotes {
                             else -> TODO()
                         }
                     )
+                    StartRegistrationResponse(
+                        options = options,
+                        requestId = UUID.fromString(obj.getString("requestId")),
+                    )
                 }
                 else -> error("Unknown code: $code")
             }
         }
     }
 
-    override fun finishRegistration(credential: PublicKeyCredential) {
+    override fun finishRegistration(
+        credential: PublicKeyCredential,
+        user: PublicKeyCredentialUserEntity,
+        requestId: UUID,
+    ) {
         val contentType = "application/json".toMediaType()
+        val attestation = JSONObject()
+            .put("attestationObject", JSONObject().put("\$base64", Base64.encode(credential.response.attestationObject)))
+            .put("clientDataJSON", JSONObject().put("\$base64", Base64.encode(credential.response.clientDataJSON)))
         val request = Request.Builder()
             .url("$uri/register-finish")
             .post(
                 body = JSONObject()
+                    .put("attestation", attestation)
+                    .put("displayName", user.displayName)
+                    .put("requestId", requestId.toString())
+                    .put("username", user.name)
                     .toString()
                     .toRequestBody(contentType = contentType),
             )

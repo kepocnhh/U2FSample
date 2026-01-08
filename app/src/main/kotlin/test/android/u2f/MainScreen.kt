@@ -57,9 +57,9 @@ internal fun MainScreen() {
                             loading.value = true
                             withContext(Dispatchers.Default) {
                                 runCatching {
-                                    val options = injection.u2FRemotes.startRegistration()
-                                    logger.debug("options:challenge: ${Base64.encode(options.challenge)}")
-                                    val credential = injection.u2FProvider.create(options = options)
+                                    val response = injection.u2FRemotes.startRegistration()
+                                    logger.debug("options:challenge: ${Base64.encode(response.options.challenge)}")
+                                    val credential = injection.u2FProvider.create(options = response.options)
                                     logger.debug("credential:id: ${credential.rawId.hex()}")
                                     logger.debug("credential:client: ${JSONObject(String(credential.response.clientDataJSON))}")
                                     CborDecoder.decode(credential.response.attestationObject).single().let {
@@ -70,7 +70,11 @@ internal fun MainScreen() {
                                     }.also { message ->
                                         logger.debug("credential:attestation: $message")
                                     }
-                                    injection.u2FRemotes.finishRegistration(credential = credential)
+                                    injection.u2FRemotes.finishRegistration(
+                                        credential = credential,
+                                        user = response.options.user,
+                                        requestId = response.requestId,
+                                    )
                                 }.fold(
                                     onSuccess = {
                                         TODO("registration...")

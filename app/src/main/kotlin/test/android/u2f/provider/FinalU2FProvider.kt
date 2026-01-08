@@ -27,6 +27,8 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.math.BigInteger
 import java.security.KeyFactory
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -161,15 +163,28 @@ internal class FinalU2FProvider(loggers: Loggers) : U2FProvider {
         return sig.sign()
     }
 
-    private fun attestationObject(): ByteArray {
+    private fun attestationObject(attestationStatement: FIDOU2FAttestationStatement): ByteArray {
         return ByteArrayOutputStream().use { stream ->
             val builder = CborBuilder()
                 .addMap()
-                .put("fmt", "fido-u2f")
+                    .put("fmt", "fido-u2f")
+                    .putMap("attStmt")
+                        .putArray("x5c")
+                        .add(attestationStatement.x5c.single())
+                        .end()
+                        .put("sig", attestationStatement.sig)
+                    .end()
                 .end()
             CborEncoder(stream).encode(builder.build())
             stream.toByteArray()
         }
+    }
+
+    private fun newKeyPair(): Pair<PrivateKey, PublicKey> {
+        val kpg = KeyPairGenerator.getInstance("ec")
+        kpg.initialize(256)
+        val keyPair = kpg.generateKeyPair()
+        return keyPair.private to keyPair.public
     }
 
     override fun create(options: PublicKeyCredentialCreationOptions): PublicKeyCredential {
@@ -184,24 +199,22 @@ internal class FinalU2FProvider(loggers: Loggers) : U2FProvider {
             flags = 0b00000000,
             signCount = 1, // todo
         )
-//        val keyPair = secrets.newKeyPair(algorithm = "EC", keySize = 256)
-//        val privateKey = keyPair.private
-//        val publicKey = keyPair.public
-//        val crt = newCertificate(publicKey = publicKey, privateKey = privateKey)
+        val (attestationPrivateKey, attestationPublicKey) = newKeyPair()
+        val attestationCrt = newCertificate(publicKey = attestationPublicKey, privateKey = attestationPrivateKey)
         //
-        val attestationPrivateKeyEncoded = "f3fccc0d00d8031954f90864d43c247f4bf5f0665c6b50cc17749a27d1cf7664".hexToByteArray()
-        logger.debug("attestation:private:key: ${attestationPrivateKeyEncoded.hex()}")
-        val attestationPrivateKey = toPrivateKey(attestationPrivateKeyEncoded)
+//        val attestationPrivateKeyEncoded = "f3fccc0d00d8031954f90864d43c247f4bf5f0665c6b50cc17749a27d1cf7664".hexToByteArray()
+//        logger.debug("attestation:private:key: ${attestationPrivateKeyEncoded.hex()}")
+//        val attestationPrivateKey = toPrivateKey(attestationPrivateKeyEncoded)
         logger.debug("attestation:private:key:sha256: ${sha256.digest(attestationPrivateKey.encoded).hex()}")
         //
-        val attestationPublicKeyEncoded = "048d617e65c9508e64bcc5673ac82a6799da3c1446682c258c463fffdf58dfd2fa3e6c378b53d795c4a4dffb4199edd7862f23abaf0203b4b8911ba0569994e101".hexToByteArray()
-        logger.debug("attestation:public:key: ${attestationPublicKeyEncoded.hex()}")
-        val attestationPublicKey = toPublicKey(attestationPublicKeyEncoded)
+//        val attestationPublicKeyEncoded = "048d617e65c9508e64bcc5673ac82a6799da3c1446682c258c463fffdf58dfd2fa3e6c378b53d795c4a4dffb4199edd7862f23abaf0203b4b8911ba0569994e101".hexToByteArray()
+//        logger.debug("attestation:public:key: ${attestationPublicKeyEncoded.hex()}")
+//        val attestationPublicKey = toPublicKey(attestationPublicKeyEncoded)
         logger.debug("attestation:public:key:sha256: ${sha256.digest(attestationPublicKey.encoded).hex()}")
         //
-        val attestationCrtEncoded = "3082013c3081e4a003020102020a47901280001155957352300a06082a8648ce3d0403023017311530130603550403130c476e756262792050696c6f74301e170d3132303831343138323933325a170d3133303831343138323933325a3031312f302d0603550403132650696c6f74476e756262792d302e342e312d34373930313238303030313135353935373335323059301306072a8648ce3d020106082a8648ce3d030107034200048d617e65c9508e64bcc5673ac82a6799da3c1446682c258c463fffdf58dfd2fa3e6c378b53d795c4a4dffb4199edd7862f23abaf0203b4b8911ba0569994e101300a06082a8648ce3d0403020347003044022060cdb6061e9c22262d1aac1d96d8c70829b2366531dda268832cb836bcd30dfa0220631b1459f09e6330055722c8d89b7f48883b9089b88d60d1d9795902b30410df".hexToByteArray()
-        logger.debug("attestation:crt: ${attestationCrtEncoded.hex()}")
-        val attestationCrt = toCertificate(attestationCrtEncoded)
+//        val attestationCrtEncoded = "3082013c3081e4a003020102020a47901280001155957352300a06082a8648ce3d0403023017311530130603550403130c476e756262792050696c6f74301e170d3132303831343138323933325a170d3133303831343138323933325a3031312f302d0603550403132650696c6f74476e756262792d302e342e312d34373930313238303030313135353935373335323059301306072a8648ce3d020106082a8648ce3d030107034200048d617e65c9508e64bcc5673ac82a6799da3c1446682c258c463fffdf58dfd2fa3e6c378b53d795c4a4dffb4199edd7862f23abaf0203b4b8911ba0569994e101300a06082a8648ce3d0403020347003044022060cdb6061e9c22262d1aac1d96d8c70829b2366531dda268832cb836bcd30dfa0220631b1459f09e6330055722c8d89b7f48883b9089b88d60d1d9795902b30410df".hexToByteArray()
+//        logger.debug("attestation:crt: ${attestationCrtEncoded.hex()}")
+//        val attestationCrt = toCertificate(attestationCrtEncoded)
         logger.debug("attestation:crt:sha256: ${sha256.digest(attestationCrt.encoded).hex()}")
         check(attestationCrt is X509Certificate)
         logger.debug("attestation:crt:subject: ${attestationCrt.subjectX500Principal.name}")
@@ -243,7 +256,7 @@ internal class FinalU2FProvider(loggers: Loggers) : U2FProvider {
             attestnCert = attestationCrt.encoded,
             sig = signature,
         )
-        val attestationObject = attestationObject()
+        val attestationObject = attestationObject(attestationStatement = attestationStatement)
         val response = AuthenticatorAttestationResponse(
             clientDataJSON = clientDataJson,
             attestationObject = attestationObject,
